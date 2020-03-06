@@ -87,17 +87,21 @@
                   ></v-switch>
                 </v-form>
               </v-card-text>
+              <v-snackbar
+                v-model="snackbar"
+                :multi-line="multiLine"
+                :top="y === 'top'"
+              >
+                {{ message }} {{ result }}
+                <v-btn color="red" text @click="snackbar = false">Close</v-btn>
+              </v-snackbar>
               <v-card-actions>
                 <v-spacer />
-                <!-- eslint-disable-next-line -->
-                <v-btn color="primary" :disabled="!valid" @click="validate">Send Push</v-btn>
+                <v-btn color="primary" :disabled="!valid" @click="validate"
+                  >Send Push</v-btn
+                >
               </v-card-actions>
             </v-card>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-card>{{ result }}</v-card>
           </v-col>
         </v-row>
       </v-container>
@@ -121,6 +125,10 @@ export default {
     bundleId: null,
     certificate: null,
     isProduction: false,
+    multiLine: true,
+    snackbar: false,
+    message: null,
+    y: "top",
     // Validation rules
     keyIdRules: [v => !!v || "Key Id is required"],
     teamIdRules: [v => !!v || "Team Id is required"],
@@ -147,11 +155,23 @@ export default {
         formData.append("certificate", this.certificate);
 
         axios
-          .post("http://localhost:9000/apn", formData)
+          .post("https://apns-push.herokuapp.com/apn", formData)
           .then(response => {
-            this.result = response.data.sent;
+            this.snackbar = true;
+            if (response.data.sent.length > 0) {
+              response.data.sent.message = "Success";
+              this.result = response.data.sent;
+              this.message = "Success";
+            } else if (response.data.failed.length > 0) {
+              this.result = response.data.failed;
+              this.message = "Failed";
+            } else {
+              this.result = "Something Went Wrong!";
+            }
           })
           .catch(e => {
+            this.snackbar = true;
+            this.result = "P8 Tester Not Working!";
             console.log(e);
           });
       }
