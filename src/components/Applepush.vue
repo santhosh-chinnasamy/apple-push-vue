@@ -3,7 +3,7 @@
     <v-content>
       <v-container class="fill-height" fluid>
         <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="8">
+          <v-col cols="12" sm="8" md="6">
             <v-card class="elevation-12">
               <v-toolbar color="primary" dark flat>
                 <v-toolbar-title>APNS</v-toolbar-title>
@@ -29,7 +29,6 @@
                     id="teamId"
                     label="TeamId"
                     name="teamId"
-                    :counter="10"
                     v-model="teamId"
                     :rules="teamIdRules"
                     prepend-icon="mdi-account-supervisor-outline"
@@ -79,17 +78,13 @@
                     accept=".p8"
                     :rules="certificateRules"
                     ref="certfile"
-                    @change="onSelect"
+                    @change="onFileChanged"
                   ></v-file-input>
-                  <!-- <input
-                    type="file"
+                  <v-switch
+                    v-model="isProduction"
+                    :label="`Production Mode: ${isProduction.toString()}`"
                     name="certificate"
-                    id="certificate"
-                    accept=".p8"
-                    :rules="certificateRules"
-                    ref="certfile"
-                    @change="onSelect"
-                  /> -->
+                  ></v-switch>
                 </v-form>
               </v-card-text>
               <v-card-actions>
@@ -125,6 +120,7 @@ export default {
     alertPayload: null,
     bundleId: null,
     certificate: null,
+    isProduction: false,
     // Validation rules
     keyIdRules: [v => !!v || "Key Id is required"],
     teamIdRules: [v => !!v || "Team Id is required"],
@@ -135,38 +131,25 @@ export default {
     certificateRules: [v => !!v || "Certificate is required"]
   }),
   methods: {
-    onSelect() {
-      // this.certificate = event.target.files[0];
-      // // console.log("file", this.certificate);
-      // if (this.certificate) {
-      //   console.log(this.certificate);
-      // }
-      this.certificate = this.$refs.certfile.files[0];
-      if (this.certificate) {
-        console.log(this.certificate);
-      }
+    onFileChanged(event) {
+      this.certificate = event;
     },
     validate() {
       if (this.$refs.form.validate()) {
-        let data = {
-          keyId: this.keyId,
-          teamId: this.teamId,
-          deviceToken: this.deviceToken,
-          alertMessage: this.alertMessage,
-          alertPayload: this.alertPayload,
-          alertTopic: this.bundleId
-        };
-        data.files.certificate = this.certificate;
-        console.log("cert", data);
-        axios.defaults.headers.post["Content-Type"] = "multipart/form-data";
-        axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
+        const formData = new FormData();
+        formData.append("keyId", this.keyId);
+        formData.append("teamId", this.teamId);
+        formData.append("deviceToken", this.deviceToken);
+        formData.append("alertMessage", this.alertMessage);
+        formData.append("alertPayload", this.alertPayload);
+        formData.append("alertTopic", this.bundleId);
+        formData.append("isProduction", this.isProduction);
+        formData.append("certificate", this.certificate);
 
         axios
-          // .post(`https://apns-push.herokuapp.com/apn`, data)
-          .post(`http://localhost:9000/apn`, data)
+          .post("http://localhost:9000/apn", formData)
           .then(response => {
-            this.result = response;
-            console.log("response", this.result);
+            this.result = response.data.sent;
           })
           .catch(e => {
             console.log(e);
