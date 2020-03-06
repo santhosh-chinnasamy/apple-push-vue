@@ -9,7 +9,7 @@
       <v-spacer></v-spacer>
 
       <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
+        href="https://github.com/santhosh-chinnasamy/apple-push-vue"
         target="_blank"
         text
       >
