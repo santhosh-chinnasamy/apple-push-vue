@@ -172,7 +172,6 @@ export default {
           .catch(e => {
             this.snackbar = true;
             this.result = "P8 Tester Not Working!";
-            console.log(e);
           });
       }
     }
