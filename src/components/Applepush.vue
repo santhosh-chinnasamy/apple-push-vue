@@ -169,7 +169,7 @@ export default {
               this.result = "Something Went Wrong!";
             }
           })
-          .catch(e => {
+          .catch(() => {
             this.snackbar = true;
             this.result = "P8 Tester Not Working!";
           });
